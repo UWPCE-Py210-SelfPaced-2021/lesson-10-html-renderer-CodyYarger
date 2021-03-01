@@ -22,6 +22,7 @@ def render_page(page, filename, indent=None):
     write to file -- very handy!
     """
 
+    # f is a file object that lives in memory
     f = StringIO()
     if indent is None:
         page.render(f)
@@ -48,21 +49,21 @@ render_page(page, "test_html_output1.html")
 # The rest of the steps have been commented out.
 #  Uncomment them as you move along with the assignment.
 
-# ## Step 2
-# ##########
+# Step 2
+##########
 
-# page = hr.Html()
+page = hr.Html()
 
-# body = hr.Body()
+body = hr.Body()
 
-# body.append(hr.P("Here is a paragraph of text -- there could be more of them, "
-#                  "but this is enough  to show that we can do some text"))
+body.append(hr.P("Here is a paragraph of text -- there could be more of them, "
+                 "but this is enough  to show that we can do some text"))
 
-# body.append(hr.P("And here is another piece of text -- you should be able to add any number"))
+body.append(hr.P("And here is another piece of text -- you should be able to add any number"))
 
-# page.append(body)
+page.append(body)
 
-# render_page(page, "test_html_output2.html")
+render_page(page, "test_html_output2.html")
 
 # # Step 3
 # ##########
