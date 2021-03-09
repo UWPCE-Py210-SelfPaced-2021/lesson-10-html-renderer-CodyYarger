@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-
+# 03/08/2021
+# Dev: Cody Yarger
+# Exercise 10.0: HTML Renderer
 """
 A class-based system for rendering html.
 """
 
 
-# This is the framework for the base class
 class Element:
+    """Base class for rendering HTML files """
     tag = "html"
+    indent = "   "
 
     def __init__(self, content=None, **kwargs):
         """
-        param content: """
+        param content: results in nested list of tags and related content
+        """
         if content is None:
             self.contents = []
         else:
@@ -23,6 +27,7 @@ class Element:
         self.contents.append(new_content)
 
     def _open_tag(self):
+        """ creates tag object to be written to file """
         # begin element < tag:
         tagl = ["<{}".format(self.tag)]
 
@@ -37,30 +42,37 @@ class Element:
         return "".join(tagl)
 
     def _close_tag(self):
-        return "</{}>\n".format(self.tag)
+        # return "</{}>\n".format(self.tag)
+        return "</{}>".format(self.tag)
 
-    def render(self, out_file):
-        """ renders an element with tag and attributes """
-
+    def render(self, out_file, cur_ind=""):
+        """ render_page(page, "test_html_output8.html")renders an element with
+         tag attributes and content """
+        elem_ind = cur_ind + self.indent
         # open tag
-        out_file.write(self._open_tag())
+        out_file.write(cur_ind + self._open_tag())
         out_file.write("\n")
 
-        # write contents of contents list to file.
+        # for content in contents call render for tags or write content
         for content in self.contents:
+            # try to see if content has render method (i.e is a tag)
             try:
-                content.render(out_file)
+                content.render(out_file, elem_ind)
+            # except if no render method then its the tags content, write to file.
             except AttributeError:
-                out_file.write(content)
+                out_file.write(elem_ind + content)
             out_file.write("\n")
 
         # close tag
-        out_file.write(self._close_tag())
-        out_file.write("\n")
+        out_file.write(cur_ind + self._close_tag())
 
 
 class Html(Element):
     tag = "html"
+
+    def render(self, out_file, cur_ind=""):
+        out_file.write("<!DOCTYPE html>\n")
+        super().render(out_file, cur_ind="")
 
 
 class Body(Element):
@@ -75,18 +87,28 @@ class Head(Element):
     tag = "head"
 
 
-# ===============================================================================
-# ===============================================================================
+class Li(Element):
+    tag = "li"
 
+
+class Ul(Element):
+    tag = "ul"
+
+
+# ===============================================================================
+# One Line Tag Class and Sub Classes
+# ===============================================================================
 class OneLineTag(Element):
     """ writes one line tag """
 
-    def render(self, out_file):
-        out_file.write("<{}>".format(self.tag))
+    def render(self, out_file, cur_ind=""):
+        out_file.write(cur_ind)
+        out_file.write(self._open_tag())
         out_file.write(self.contents[0])
-        out_file.write("</{}>\n".format(self.tag))
+        out_file.write(self._close_tag())
 
     def append(self, content):
+        """ append method overwritten. One line tags don't have content """
         raise NotImplementedError
 
 
@@ -94,7 +116,28 @@ class Title(OneLineTag):
     tag = "title"
 
 
+class A(OneLineTag):
+    tag = 'a'
+
+    def __init__(self, link, content=None, **kwargs):
+        kwargs['href'] = link
+        super().__init__(content, **kwargs)
+
+
+class H(OneLineTag):
+    """ One line tag class """
+
+    def __init__(self, level, content=None, **kwargs):
+        self.tag = "h" + str(level)
+        if content is None:
+            self.contents = []
+        else:
+            self.contents = [content]
+        self.attributes = kwargs
+
+
 # ==============================================================================
+# Self Closing Tag Class and Sub Classes
 # ==============================================================================
 class SelfClosingTag(Element):
 
@@ -112,9 +155,13 @@ class SelfClosingTag(Element):
          no content """
         raise TypeError("You can not add content to a SelfClosingTag")
 
-    def render(self, outfile):
-        tag = self._open_tag()[:-1] + " />\n"
-        outfile.write(tag)
+    def render(self, outfile, cur_ind=""):
+        tag = self._open_tag()[:-1] + " />"
+        outfile.write(cur_ind + tag)
+
+
+class Meta(SelfClosingTag):
+    tag = "meta"
 
 
 class Hr(SelfClosingTag):
